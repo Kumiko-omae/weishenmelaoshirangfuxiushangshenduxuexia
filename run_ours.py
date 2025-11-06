@@ -15,6 +15,8 @@ from torch.utils.data.sampler import Sampler
 from random import shuffle
 from torch.utils.data import Dataset,DataLoader
 from collections import Counter
+import os
+import sys
 
 
 parser = argparse.ArgumentParser()
@@ -41,6 +43,16 @@ np.set_printoptions(precision=2,suppress=True)
 torch.backends.cudnn.benchmark = True
 torch.manual_seed(args.seed)
 torch.cuda.manual_seed(args.seed)
+
+# 硬件检查：仅允许 CUDA 可用且所选设备为 RTX 3060（Laptop）
+if not torch.cuda.is_available():
+    print('E-HW-001 因硬件参数不符合 无法运行'); sys.exit(1)
+if args.device < 0 or args.device >= torch.cuda.device_count():
+    print('E-HW-002 因硬件参数不符合 无法运行'); sys.exit(1)
+gpu_name = torch.cuda.get_device_name(args.device)
+if '3060' not in gpu_name:
+    print('E-HW-003 因硬件参数不符合 无法运行'); sys.exit(1)
+
 device = torch.device('cuda:'+ str(args.device))
 
 
@@ -83,6 +95,8 @@ def distilling(model,train_loader,train_data):
     distilled_index_list = np.array(distilled_index_list)
     distilled_imgs, distilled_labels, distilled_trues = train_data.train_data[distilled_index_list], train_data.train_labels[distilled_index_list], train_data.t[distilled_index_list]
 
+    # 确保目录存在，避免保存报错
+    os.makedirs(f'./distilled_data/{args.dataset}', exist_ok=True)
     np.save('./distilled_data/{}/distilled_images.npy'.format(args.dataset),distilled_imgs)
     np.save('./distilled_data/{}/distilled_labels.npy'.format(args.dataset), distilled_labels)
 
@@ -303,7 +317,7 @@ def main():
                            num_workers=4,
                            drop_last=False)         
     
-    model = torch.nn.DataParallel(model, device_ids=[1,2])
+    # 单卡运行：移除多卡 DataParallel
     model = model.to(device)
     trans = trans.to(device)
     

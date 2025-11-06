@@ -27,7 +27,7 @@ parser.add_argument('--noise_type', type=str, default='instance')  #flip, symmet
 parser.add_argument('--noise_rate', type = float, help = 'corruption rate, should be less than 1', default =0.3)
 parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--batch_size', type=int, default=128)
-parser.add_argument('--device', type=int, default=1)
+parser.add_argument('--device', type=int, default=0)
 parser.add_argument('--weight_decay', type=float, help='weight_decay for training', default=1e-3)
 parser.add_argument('--anchor',default=True, action='store_false')
 parser.add_argument('--warmup_epoch', type = int, default = 6) 
